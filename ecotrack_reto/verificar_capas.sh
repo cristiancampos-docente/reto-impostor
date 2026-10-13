@@ -3,13 +3,34 @@
 #
 #   bash verificar_capas.sh
 #
+# Se puede correr desde la raíz del repositorio o desde ecotrack_reto/.
 # Revisa que existan los archivos del contrato y que las dependencias
 # apunten en la dirección legal. Las pruebas (flutter test) revisan que
 # la app FUNCIONE; este script revisa que esté BIEN SEPARADA.
 #
 # NO EDITAR: el docente vuelve a correr una copia limpia de este archivo.
+#
+# Si el archivo llegó con saltos de línea de Windows (CRLF), se corre una copia limpia. Esta línea debe terminar en "#".
+if grep -q $'\r' "$0" 2>/dev/null; then d=$(cd "$(dirname "$0")" && pwd); limpio="${TMPDIR:-/tmp}/verificar_capas_lf.sh"; tr -d '\r' < "$0" > "$limpio"; VERIFICAR_DIR="$d" exec bash "$limpio" "$@"; fi #
 
-cd "$(dirname "$0")" || exit 1
+aqui="${VERIFICAR_DIR:-$(cd "$(dirname "$0")" && pwd)}"
+
+proyecto=""
+for candidato in "$aqui" "$aqui/ecotrack_reto" "$PWD" "$PWD/ecotrack_reto"; do
+  if [ -f "$candidato/pubspec.yaml" ] && grep -q "^name: ecotrack_reto" "$candidato/pubspec.yaml"; then
+    proyecto="$candidato"
+    break
+  fi
+done
+
+if [ -z "$proyecto" ]; then
+  echo "No encuentro el proyecto ecotrack_reto (falta pubspec.yaml)."
+  echo "Corran el script desde la raíz del repositorio o desde ecotrack_reto/."
+  exit 1
+fi
+
+cd "$proyecto" || exit 1
+echo "Proyecto: $proyecto"
 
 fallas=0
 
